@@ -6,6 +6,8 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 local contextMenus = {}
 local openContextMenu = nil
 
@@ -54,6 +56,7 @@ end
 
 ---@param id string
 function lib.showContext(id)
+    if ltui then return exports['lt-ui']:showContext(id) end
     if not contextMenus[id] then error('No context menu of such id found.') end
 
     local data = contextMenus[id]
@@ -74,6 +77,7 @@ end
 
 ---@param context ContextMenuProps | ContextMenuProps[]
 function lib.registerContext(context)
+    if ltui then return exports['lt-ui']:registerContext(context) end
     for k, v in pairs(context) do
         if type(k) == 'number' then
             contextMenus[v.id] = v
@@ -85,10 +89,16 @@ function lib.registerContext(context)
 end
 
 ---@return string?
-function lib.getOpenContextMenu() return openContextMenu end
+function lib.getOpenContextMenu()
+    if ltui then return exports['lt-ui']:getOpenContextMenu() end
+    return openContextMenu
+end
 
 ---@param onExit boolean?
-function lib.hideContext(onExit) closeContext(nil, nil, onExit) end
+function lib.hideContext(onExit)
+    if ltui then return exports['lt-ui']:hideContext(onExit) end
+    closeContext(nil, nil, onExit)
+end
 
 RegisterNUICallback('openContext', function(data, cb)
     if data.back and contextMenus[openContextMenu].onBack then contextMenus[openContextMenu].onBack() end

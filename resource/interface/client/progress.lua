@@ -6,6 +6,8 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 local progress
 local DisableControlAction = DisableControlAction
 local DisablePlayerFiring = DisablePlayerFiring
@@ -167,6 +169,7 @@ end
 ---@param data ProgressProps
 ---@return boolean?
 function lib.progressBar(data)
+    if ltui then return exports['lt-ui']:progressBar(data) end
     while progress ~= nil do Wait(0) end
 
     if not interruptProgress(data) then
@@ -185,6 +188,7 @@ end
 ---@param data ProgressProps
 ---@return boolean?
 function lib.progressCircle(data)
+    if ltui then return exports['lt-ui']:progressCircle(data) end
     while progress ~= nil do Wait(0) end
 
     if not interruptProgress(data) then
@@ -202,6 +206,7 @@ function lib.progressCircle(data)
 end
 
 function lib.cancelProgress()
+    if ltui then return exports['lt-ui']:cancelProgress() end
     if not progress then
         error('No progress bar is active')
     end
@@ -211,6 +216,7 @@ end
 
 ---@return boolean
 function lib.progressActive()
+    if ltui then return exports['lt-ui']:isProgressActive() end
     return progress and true
 end
 
@@ -218,14 +224,6 @@ RegisterNUICallback('progressComplete', function(data, cb)
     cb(1)
     progress = nil
 end)
-
-RegisterCommand('cancelprogress', function()
-    if progress?.canCancel then progress = false end
-end)
-
-if isFivem then
-    RegisterKeyMapping('cancelprogress', locale('cancel_progress'), 'keyboard', 'x')
-end
 
 local function deleteProgressProps(serverId)
     local playerProps = createdProps[serverId]

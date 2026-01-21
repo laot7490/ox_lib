@@ -6,6 +6,8 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 ---@type { [string]: MenuProps }
 local registeredMenus = {}
 ---@type MenuProps | nil
@@ -13,7 +15,6 @@ local openMenu
 
 ---@alias MenuPosition 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 ---@alias MenuChangeFunction fun(selected: number, scrollIndex?: number, args?: any, checked?: boolean)
----@alias MenuScrollSelectChangeFunction fun(selected: number, scrollIndex?: number, args?: any)
 
 ---@class MenuOptions
 ---@field label string
@@ -36,14 +37,15 @@ local openMenu
 ---@field disableInput? boolean
 ---@field canClose? boolean
 ---@field onClose? fun(keyPressed?: 'Escape' | 'Backspace')
----@field onSelected? MenuScrollSelectChangeFunction
----@field onSideScroll? MenuScrollSelectChangeFunction
----@field onCheck? fun(selected: number, checked: boolean, args?: any)
+---@field onSelected? MenuChangeFunction
+---@field onSideScroll? MenuChangeFunction
+---@field onCheck? MenuChangeFunction
 ---@field cb? MenuChangeFunction
 
 ---@param data MenuProps
 ---@param cb? MenuChangeFunction
 function lib.registerMenu(data, cb)
+    if ltui then return exports['lt-ui']:registerMenu(data, cb) end
     if not data.id then error('No menu id was provided.') end
     if not data.title then error('No menu title was provided.') end
     if not data.options then error('No menu options were provided.') end
@@ -54,6 +56,7 @@ end
 ---@param id string
 ---@param startIndex? number
 function lib.showMenu(id, startIndex)
+    if ltui then return exports['lt-ui']:showMenu(id, startIndex) end
     local menu = registeredMenus[id]
     if not menu then
         error(('No menu with id %s was found'):format(id))
@@ -96,6 +99,7 @@ function lib.showMenu(id, startIndex)
 end
 ---@param onExit boolean?
 function lib.hideMenu(onExit)
+    if ltui then return exports['lt-ui']:hideMenu(onExit) end
     local menu = openMenu
     openMenu = nil
 
@@ -116,6 +120,7 @@ end
 ---@param options MenuOptions | MenuOptions[]
 ---@param index? number
 function lib.setMenuOptions(id, options, index)
+    if ltui then return exports['lt-ui']:setMenuOptions(id, options, index) end
     if index then
         registeredMenus[id].options[index] = options
     else
@@ -125,7 +130,10 @@ function lib.setMenuOptions(id, options, index)
 end
 
 ---@return string?
-function lib.getOpenMenu() return openMenu and openMenu.id end
+function lib.getOpenMenu()
+    if ltui then return exports['lt-ui']:getOpenMenu() end
+    return openMenu and openMenu.id 
+end
 
 RegisterNUICallback('confirmSelected', function(data, cb)
     cb(1)

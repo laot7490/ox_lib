@@ -38,6 +38,8 @@ local menuHistory = {}
 ---@type RadialMenuProps?
 local currentRadial = nil
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 ---Open a the global radial menu or a registered radial submenu with the given id.
 ---@param id string?
 ---@param option number?
@@ -113,6 +115,8 @@ end
 ---Registers a radial sub menu with predefined options.
 ---@param radial RadialMenuProps
 function lib.registerRadial(radial)
+    if ltui then return exports['lt-ui']:registerRadial(radial) end
+
     menus[radial.id] = radial
     radial.resource = GetInvokingResource()
 
@@ -122,10 +126,12 @@ function lib.registerRadial(radial)
 end
 
 function lib.getCurrentRadialId()
+    if ltui then return exports['lt-ui']:getCurrentRadialId() end
     return currentRadial and currentRadial.id
 end
 
 function lib.hideRadial()
+    if ltui then return exports['lt-ui']:hideRadial() end
     if not isOpen then return end
 
     SendNUIMessage({
@@ -143,6 +149,8 @@ end
 ---Registers an item or array of items in the global radial menu.
 ---@param items RadialMenuItem | RadialMenuItem[]
 function lib.addRadialItem(items)
+    if ltui then return exports['lt-ui']:addRadialItem(items) end
+
     local menuSize = #menuItems
     local invokingResource = GetInvokingResource()
 
@@ -178,6 +186,7 @@ end
 ---Removes an item from the global radial menu with the given id.
 ---@param id string
 function lib.removeRadialItem(id)
+    if ltui then return exports['lt-ui']:removeRadialItem(id) end
     local menuItem
 
     for i = 1, #menuItems do
@@ -196,6 +205,7 @@ end
 
 ---Removes all items from the global radial menu.
 function lib.clearRadialItems()
+    if ltui then return exports['lt-ui']:clearRadialItems() end
     table.wipe(menuItems)
 
     if isOpen then
@@ -297,6 +307,7 @@ local isDisabled = false
 ---Disallow players from opening the radial menu.
 ---@param state boolean
 function lib.disableRadial(state)
+    if ltui then return exports['lt-ui']:disableRadial(state) end
     isDisabled = state
 
     if isOpen and state then
@@ -309,6 +320,14 @@ lib.addKeybind({
     description = locale('open_radial_menu'),
     defaultKey = 'z',
     onPressed = function()
+        -- Use lt-ui exports if its enabled.
+        if ltui then
+            if exports['lt-ui']:isRadialOpen() then
+                return exports['lt-ui']:hideRadial()
+            end
+            return exports['lt-ui']:showRadial()
+        end
+
         if isDisabled then return end
 
         if isOpen then
@@ -341,6 +360,7 @@ lib.addKeybind({
     end,
     -- onReleased = lib.hideRadial,
 })
+
 
 AddEventHandler('onClientResourceStop', function(resource)
     for i = #menuItems, 1, -1 do

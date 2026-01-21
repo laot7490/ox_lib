@@ -6,6 +6,8 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 local input
 
 ---@class InputDialogRowProps
@@ -42,6 +44,7 @@ local input
 ---@param options InputDialogOptionsProps[]?
 ---@return string[] | number[] | boolean[] | nil
 function lib.inputDialog(heading, rows, options)
+    if ltui then return exports['lt-ui']:inputDialog(heading, rows, options) end
     if input then return end
     input = promise.new()
 
@@ -66,6 +69,7 @@ function lib.inputDialog(heading, rows, options)
 end
 
 function lib.closeInputDialog()
+    if ltui then return exports['lt-ui']:closeInputDialog() end
     if not input then return end
 
     lib.resetNuiFocus()

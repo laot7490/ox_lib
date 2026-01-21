@@ -6,6 +6,8 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 ---@type promise?
 local alert = nil
 local alertId = 0
@@ -23,6 +25,7 @@ local alertId = 0
 ---@param timeout? number Force the window to timeout after `x` milliseconds.
 ---@return 'cancel' | 'confirm' | nil
 function lib.alertDialog(data, timeout)
+    if ltui then return exports['lt-ui']:alertDialog(data, timeout) end
     if alert then return end
 
     local id = alertId + 1
@@ -46,6 +49,7 @@ end
 
 ---@param reason? string An optional reason for the window to be closed.
 function lib.closeAlertDialog(reason)
+    if ltui then return exports['lt-ui']:closeAlertDialog(reason) end
     if not alert then return end
 
     lib.resetNuiFocus()

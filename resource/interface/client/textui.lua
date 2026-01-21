@@ -13,12 +13,15 @@
 ---@field style? string | table;
 ---@field alignIcon? 'top' | 'center';
 
+local ltui = GetResourceState('lt-ui') == 'started'
+
 local isOpen = false
 local currentText
 
 ---@param text string
 ---@param options? TextUIOptions
 function lib.showTextUI(text, options)
+    if ltui then return exports['lt-ui']:showTextUI(text, options) end
     if currentText == text then return end
 
     if not options then options = {} end
@@ -35,6 +38,7 @@ function lib.showTextUI(text, options)
 end
 
 function lib.hideTextUI()
+    if ltui then return exports['lt-ui']:hideTextUI() end
     SendNUIMessage({
         action = 'textUiHide'
     })
@@ -45,5 +49,6 @@ end
 
 ---@return boolean, string | nil
 function lib.isTextUIOpen()
+    if ltui then return exports['lt-ui']:isTextUIOpen() end
     return isOpen, currentText
 end
