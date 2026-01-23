@@ -6,17 +6,19 @@
     Copyright © 2025 Linden <https://github.com/thelindat>
 ]]
 
+local ltfuel = GetResourceState('lt-fuel') == 'started'
+
 if cache.game == 'redm' then return end
 
 ---@class VehicleProperties
 ---@field model? number
 ---@field plate? string
 ---@field plateIndex? number
----@field lockState? number
 ---@field bodyHealth? number
 ---@field engineHealth? number
 ---@field tankHealth? number
 ---@field fuelLevel? number
+---@field fuelQuality? number
 ---@field oilLevel? number
 ---@field dirtLevel? number
 ---@field paintType1? number
@@ -199,15 +201,20 @@ function lib.getVehicleProperties(vehicle)
             neons[i + 1] = IsVehicleNeonLightEnabled(vehicle, i)
         end
 
+        local fuelQuality = 0
+        if ltfuel then
+            fuelQuality = exports['lt-fuel']:GetFuelQuality(vehicle)
+        end
+
         return {
             model = GetEntityModel(vehicle),
             plate = GetVehicleNumberPlateText(vehicle),
             plateIndex = GetVehicleNumberPlateTextIndex(vehicle),
-            lockState = GetVehicleDoorLockStatus(vehicle),
             bodyHealth = math.floor(GetVehicleBodyHealth(vehicle) + 0.5),
             engineHealth = math.floor(GetVehicleEngineHealth(vehicle) + 0.5),
             tankHealth = math.floor(GetVehiclePetrolTankHealth(vehicle) + 0.5),
             fuelLevel = math.floor(GetVehicleFuelLevel(vehicle) + 0.5),
+            fuelQuality = fuelQuality,
             oilLevel = math.floor(GetVehicleOilLevel(vehicle) + 0.5),
             dirtLevel = math.floor(GetVehicleDirtLevel(vehicle) + 0.5),
             paintType1 = paintType1,
@@ -324,10 +331,6 @@ function lib.setVehicleProperties(vehicle, props, fixVehicle)
         SetVehicleNumberPlateTextIndex(vehicle, props.plateIndex)
     end
 
-    if props.lockState ~= nil then
-        SetVehicleDoorsLocked(vehicle, props.lockState)
-    end
-
     if props.bodyHealth then
         SetVehicleBodyHealth(vehicle, props.bodyHealth + 0.0)
     end
@@ -342,6 +345,10 @@ function lib.setVehicleProperties(vehicle, props, fixVehicle)
 
     if props.fuelLevel then
         SetVehicleFuelLevel(vehicle, props.fuelLevel + 0.0)
+    end
+
+    if props.fuelQuality and ltfuel then
+        exports['lt-fuel']:SetFuelQuality(vehicle, props.fuelQuality)
     end
 
     if props.oilLevel then
